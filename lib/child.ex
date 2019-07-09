@@ -20,27 +20,47 @@ defmodule MsgBench.Child do
 
   @impl true
   def handle_info({:cast_event, :received_msg, msg}, state) do
-    IO.inspect msg
     # Simulates some blocking work
     :timer.sleep(1_000)
+
+    IO.inspect msg
 
     {:noreply, state}
   end
 
-  ## ONLY USED WHEN TYPE IS :msg_manager
-  
+  ## ONLY USED WHEN TYPE IS :msg_call
   @impl true
-  def init(state = %{type: :msg_manager}) do
+  def init(state = %{type: :msg_call}) do
     Manager.subscribe(self(), state.name)
     
     {:ok, state}
   end
 
   @impl true
-  def handle_call({:received_msg, _msg}, _from, state) do
+  def handle_call({:received_msg, msg}, _from, state) do
     # Simulates some blocking work
     :timer.sleep(1_000)
+
+    IO.inspect msg
     
     {:reply, :ok, state}
+  end
+
+  ## ONLY USED WHEN TYPE IS :msg_cast
+  @impl true
+  def init(state = %{type: :msg_cast}) do
+    Manager.subscribe(self(), state.name)
+    
+    {:ok, state}
+  end
+  
+  @impl true
+  def handle_cast({:received_msg, msg}, state) do
+    # Simulates some blocking work
+    :timer.sleep(1_000)
+
+    IO.inspect msg
+    
+    {:noreply, state}
   end
 end

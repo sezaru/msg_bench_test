@@ -19,10 +19,20 @@ defmodule MsgBench.RootSup do
   end
 
   @impl true
-  def init([:msg_manager]) do
+  def init([:msg_call]) do
     children = [
-      {Manager, [:msg_manager]},
-      {ChildSup, [:msg_manager]}
+      {Manager, [:msg_call]},
+      {ChildSup, [:msg_call]}
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
+  end
+
+  @impl true
+  def init([:msg_cast]) do
+    children = [
+      {Manager, [:msg_cast]},
+      {ChildSup, [:msg_cast]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

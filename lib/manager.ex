@@ -5,12 +5,12 @@ defmodule MsgBench.Manager do
     GenServer.start_link(__MODULE__, %{type: type, childs: %{}}, name: __MODULE__)
   end
 
-  ## ONLY USED WHEN TYPE IS :registry
-
   @impl true
-  def init(state = %{type: :registry}) do
+  def init(state) do
     {:ok, state}
   end
+
+  ## ONLY USED WHEN TYPE IS :registry
 
   def send_message_to_childs(:registry) do
     GenServer.call(__MODULE__, {:send_message_to_childs, :registry})
@@ -25,12 +25,7 @@ defmodule MsgBench.Manager do
     {:reply, reply, state}
   end
 
-  ## ONLY USED WHEN TYPE IS :msg_manager
-  @impl true
-  def init(state) do
-    {:ok, state}
-  end
-  
+  ## ONLY USED WHEN TYPE IS :msg_call or :msg_cast
   def subscribe(from_pid, name) do
     GenServer.call(__MODULE__, {:subscribe, from_pid, name})
   end
@@ -43,12 +38,13 @@ defmodule MsgBench.Manager do
     {:reply, :ok, state}
   end
 
-  def send_message_to_childs(:msg_manager) do
-    GenServer.call(__MODULE__, {:send_message_to_childs, :msg_manager})
+  ## ONLY USED WHEN TYPE IS :msg_call
+  def send_message_to_childs(:msg_call) do
+    GenServer.call(__MODULE__, {:send_message_to_childs, :msg_call})
   end
 
   @impl true
-  def handle_call({:send_message_to_childs, :msg_manager}, _from, state) do
+  def handle_call({:send_message_to_childs, :msg_call}, _from, state) do
     reply = state.childs
     |> Map.values()
     |> Enum.each(fn pid ->
@@ -56,5 +52,21 @@ defmodule MsgBench.Manager do
     end)
 
     {:reply, reply, state}
+  end
+
+  ## ONLY USED WHEN TYPE IS :msg_cast
+  def send_message_to_childs(:msg_cast) do
+    GenServer.call(__MODULE__, {:send_message_to_childs, :msg_cast})
+  end
+
+  @impl true
+  def handle_call({:send_message_to_childs, :msg_cast}, _from, state) do
+    state.childs
+    |> Map.values()
+    |> Enum.each(fn pid ->
+      GenServer.cast(pid, {:received_msg, "hello"})
+    end)
+
+    {:reply, :ok, state}
   end
 end
