@@ -8,10 +8,21 @@ defmodule MsgBench.RootSup do
   end
 
   @impl true
-  def init([type]) do
+  def init([:registry]) do
     children = [
-      {Manager, [type]},
-      {ChildSup, [type]}
+      {Registry, [keys: :duplicate, name: :my_registry, partitions: System.schedulers_online()]},
+      {Manager, [:registry]},
+      {ChildSup, [:registry]}
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
+  end
+
+  @impl true
+  def init([:msg_manager]) do
+    children = [
+      {Manager, [:msg_manager]},
+      {ChildSup, [:msg_manager]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

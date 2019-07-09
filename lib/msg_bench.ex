@@ -1,9 +1,9 @@
 defmodule MsgBench do
-  def run_msg_manager do
-    MsgBench.RootSup.start_link([:msg_manager])
+  def run_msg_manager(type) do
+    MsgBench.RootSup.start_link([type])
   end
 
-  def send_msg() do
-    MsgBench.Manager.send_message_to_childs()
+  def send_msg(type) do
+    MsgBench.Manager.send_message_to_childs(type)
   end
 end

@@ -9,15 +9,30 @@ defmodule MsgBench.Child do
     GenServer.start_link(__MODULE__, %{type: type, name: name}, name: name)
   end
 
+  ## ONLY USED WHEN TYPE IS :registry
+
   @impl true
-  def init(state = %{type: :msg_manager}) do
-    Manager.subscribe(self(), state.name)
+  def init(state = %{type: :registry}) do
+    {:ok, _} = Registry.register(:my_registry, :received_msg, [])
     
     {:ok, state}
   end
 
   @impl true
-  def init(state) do
+  def handle_info({:cast_event, :received_msg, msg}, state) do
+    IO.inspect msg
+    # Simulates some blocking work
+    :timer.sleep(1_000)
+
+    {:noreply, state}
+  end
+
+  ## ONLY USED WHEN TYPE IS :msg_manager
+  
+  @impl true
+  def init(state = %{type: :msg_manager}) do
+    Manager.subscribe(self(), state.name)
+    
     {:ok, state}
   end
 
